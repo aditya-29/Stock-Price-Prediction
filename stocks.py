@@ -45,7 +45,7 @@ df2.rename(columns = {'Date':'Date',
                      },inplace = True)
 df = pd.merge(df1,df2, how='outer',on='Date')
 # print on screen to see output
-print(df)  
-writer = pd.ExcelWriter('output.xlsx')
+# print(df)  
+writer = pd.ExcelWriter(symb1+"_"+symb2+".xlsx")
 df.to_excel(writer)
 writer.save()
