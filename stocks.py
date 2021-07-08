@@ -30,7 +30,6 @@ df1.rename(columns = {'Date':'Date',
                       '%Deliverble':symb1+'_%Del',                     
                      },inplace = True)
 
-
 df2 = get_history (symbol = symb2, start = start_date, end = end_date)
 df2.rename(columns = {'Date':'Date',
                       'Symbol':symb2+'_Symbol',
@@ -49,18 +48,21 @@ df2.rename(columns = {'Date':'Date',
                       '%Deliverble':symb2+'_%Del',                     
                      },inplace = True)
 df = pd.merge(df1,df2, how='outer',on='Date')
+
 # print on screen to see output
 # print(df)  
-# writer = pd.ExcelWriter(symb1+"_"+symb2+".xlsx")
-# df.to_excel(writer)
-# writer.save()
 
-#scope = ['https://www.googleapis.com/auth/spreadsheets','https://www.googleapis.com/auth/drive.file','https://www.googleapis.com/auth/drive']
-#creds = ServiceAccountCredentials.from_json_keyfile_name('nseproject-319207-61852d50ecf0', scope)
-#client = gspread.authorize(creds)
+# To make into an excel sheet
+"""writer = pd.ExcelWriter(symb1+"_"+symb2+".xlsx")
+df.to_excel(writer)
+writer.save()"""
 
-gc = gspread.service_account(filename='json file key.json')
-gsheet = gc.open_by_key("1HsERTNlhYY48Ex5hIz8knyKUDQCVzdhc4DxrnxKhunI")
+# To create a google sheet and write the content
+gc = gspread.service_account(filename='json file key.json') 
+# json file availabe in my branch
+gsheet = gc.open_by_key("1HsERTNlhYY48Ex5hIz8knyKUDQCVzdhc4DxrnxKhunI") 
+# Sheets key
+
 # Name for new worksheet
 NwWkSht = symb1+symb2
 gsheet.add_worksheet(rows=617,cols=28,title=NwWkSht)
