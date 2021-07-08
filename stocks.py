@@ -68,7 +68,9 @@ for i in range(4,len(df["MA5"])-1):
 # MA5 column 
 df["MA20"]=""
 for i in range(19,len(df["MA20"])-1):
-    df["MA5"][i]=(sum df["Basket"][i-19]+df["Basket"][i-18]+df["Basket"][i-17]+df["Basket"][i-16]+df["Basket"][i])/5 
+    rf=df.loc[i-19:i,30]
+    df["MA20"]=rf.sum(axis=0)
+   
 
 # print on screen to see output
 # print(df)  
