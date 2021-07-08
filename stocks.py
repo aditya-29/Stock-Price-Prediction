@@ -1,10 +1,15 @@
 from nsepy import get_history
 from datetime import date
 import numpy as np
+from oauth2client import client
 import pandas as pd
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
+import gspread_dataframe as gd
+from gspread_dataframe import set_with_dataframe
 
 start_date = date(2019, 1, 1)
-end_date = date(2021,6, 10)
+end_date = date(2021,1, 10)
 symb1 = 'JINDALPOLY'
 symb2 = 'POLYPLEX'
 df1 = get_history (symbol = symb1, start = start_date, end = end_date)
@@ -46,6 +51,22 @@ df2.rename(columns = {'Date':'Date',
 df = pd.merge(df1,df2, how='outer',on='Date')
 # print on screen to see output
 # print(df)  
-writer = pd.ExcelWriter(symb1+"_"+symb2+".xlsx")
-df.to_excel(writer)
-writer.save()
+# writer = pd.ExcelWriter(symb1+"_"+symb2+".xlsx")
+# df.to_excel(writer)
+# writer.save()
+
+#scope = ['https://www.googleapis.com/auth/spreadsheets','https://www.googleapis.com/auth/drive.file','https://www.googleapis.com/auth/drive']
+#creds = ServiceAccountCredentials.from_json_keyfile_name('nseproject-319207-61852d50ecf0', scope)
+#client = gspread.authorize(creds)
+
+gc = gspread.service_account(filename='json file key.json')
+gsheet = gc.open_by_key("1HsERTNlhYY48Ex5hIz8knyKUDQCVzdhc4DxrnxKhunI")
+# Name for new worksheet
+NwWkSht = symb1+symb2
+gsheet.add_worksheet(rows=617,cols=28,title=NwWkSht)
+
+#df=pd.DataFrame()
+wks = gsheet.get_worksheet(1)
+set_with_dataframe(wks, df,include_index=True)
+
+
