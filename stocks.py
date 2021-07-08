@@ -49,6 +49,27 @@ df2.rename(columns = {'Date':'Date',
                      },inplace = True)
 df = pd.merge(df1,df2, how='outer',on='Date')
 
+# Ratio column added
+df["Ratio"]=df[symb1+'_VWAP']/df[symb2+'_VWAP']
+
+# Basket column added
+df["Basket"]=df["Ratio"]
+for i in range(0,len(df["Basket"])-1):
+    if(df["Basket"][i]>=1):
+        df["Basket"][i]=(df["Basket"][i]*df[symb2+'_VWAP'][i])+df[symb1+'_VWAP'][i]
+    else:
+        df["Basket"][i]=(df["Basket"][i]*df[symb1+'_VWAP'][i])+df[symb2+'_VWAP'][i]
+
+# MA5 column 
+df["MA5"]=""
+for i in range(4,len(df["MA5"])-1):
+    df["MA5"][i]=(df["Basket"][i-4]+df["Basket"][i-3]+df["Basket"][i-2]+df["Basket"][i-1]+df["Basket"][i])/5 
+
+# MA5 column 
+df["MA20"]=""
+for i in range(19,len(df["MA20"])-1):
+    df["MA5"][i]=(sum df["Basket"][i-19]+df["Basket"][i-18]+df["Basket"][i-17]+df["Basket"][i-16]+df["Basket"][i])/5 
+
 # print on screen to see output
 # print(df)  
 
@@ -65,7 +86,7 @@ gsheet = gc.open_by_key("1HsERTNlhYY48Ex5hIz8knyKUDQCVzdhc4DxrnxKhunI")
 
 # Name for new worksheet
 NwWkSht = symb1+symb2
-gsheet.add_worksheet(rows=617,cols=28,title=NwWkSht)
+gsheet.add_worksheet(rows=617,cols=31,title=NwWkSht)
 
 #df=pd.DataFrame()
 wks = gsheet.get_worksheet(1)
