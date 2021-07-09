@@ -1,12 +1,12 @@
 from nsepy import get_history
 from datetime import date
 import numpy as np
-from oauth2client import client
+#from oauth2client import client
 import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
-import gspread
-import gspread_dataframe as gd
-from gspread_dataframe import set_with_dataframe
+#from oauth2client.service_account import ServiceAccountCredentials
+#import gspread
+#import gspread_dataframe as gd
+#from gspread_dataframe import set_with_dataframe
 from statistics import stdev
 
 start_date = date(2019, 1, 1)
@@ -30,7 +30,33 @@ df1.rename(columns = {'Date':'Date',
                       'Deliverable Volume':symb1+'_DelVol',
                       '%Deliverble':symb1+'_%Del',                     
                      },inplace = True)
-
+remove_list = [symb1+'_Symbol',
+                symb1+'_Series',
+                symb1+'_Prev Close',
+                symb1+'_Open',
+                symb1+'_High',
+                symb1+'__Low',
+                symb1+'_Last',
+                symb1+'_Close',
+                symb1+'_Vol',
+                symb1+'_TO',
+                symb1+'_Trades',
+                symb1+'_DelVol',
+                symb1+'_%Del',
+                symb2+'_Symbol',
+                symb2+'_Series',
+                symb2+'_Prev Close',
+                symb2+'_Open',
+                symb2+'_High',
+                symb2+'__Low',
+                symb2+'_Last',
+                symb2+'_Close',
+                symb2+'_VWAP',
+                symb2+'_Vol',
+                symb2+'_TO',
+                symb2+'_Trades',
+                symb2+'_DelVol',
+                symb2+'_%Del']
 df2 = get_history (symbol = symb2, start = start_date, end = end_date)
 df2.rename(columns = {'Date':'Date',
                       'Symbol':symb2+'_Symbol',
@@ -49,7 +75,6 @@ df2.rename(columns = {'Date':'Date',
                       '%Deliverble':symb2+'_%Del',                     
                      },inplace = True)
 df = pd.merge(df1,df2, how='outer',on='Date')
-
 # fn for ratio column adder 
 def Ratio_column_adder(a,b):
     df["x"]=df[a+'_VWAP']/df[b+'_VWAP']
@@ -59,7 +84,6 @@ df["Ratio"]=Ratio_column_adder(symb1,symb2)
 # Ratio column added
 #df["Ratio"]=df[symb1+'_VWAP']/df[symb2+'_VWAP']
 
-def Basket_creator(a,b):
     
 # Basket column added
 df["Basket"]=df["Ratio"]
@@ -91,13 +115,15 @@ for l in range(20,len(df["Zscore"])-1):
 
 # print on screen to see output
 # print(df)  
-
+for i in remove_list:
+    df = df.drop(columns=[i],axis=1)
+print(df)
 # To make into an excel sheet
-"""writer = pd.ExcelWriter(symb1+"_"+symb2+".xlsx")
+writer = pd.ExcelWriter(symb1+"_"+symb2+".xlsx")
 df.to_excel(writer)
-writer.save()"""
+writer.save()
 
-# To create a google sheet and write the content
+'''To create a google sheet and write the content
 gc = gspread.service_account(filename='json file key.json') 
 # json file availabe in my branch
 
@@ -111,5 +137,5 @@ gsheet.add_worksheet(rows=617,cols=31,title=NwWkSht)
 #df=pd.DataFrame()
 wks = gsheet.get_worksheet(1)
 set_with_dataframe(wks, df,include_index=True)
-
+'''
 
