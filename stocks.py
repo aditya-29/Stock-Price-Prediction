@@ -7,9 +7,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 import gspread_dataframe as gd
 from gspread_dataframe import set_with_dataframe
+from statistics import stdev
 
 start_date = date(2019, 1, 1)
-end_date = date(2021,1, 10)
+end_date = date(2021,6, 10)
 symb1 = 'JINDALPOLY'
 symb2 = 'POLYPLEX'
 df1 = get_history (symbol = symb1, start = start_date, end = end_date)
@@ -49,9 +50,17 @@ df2.rename(columns = {'Date':'Date',
                      },inplace = True)
 df = pd.merge(df1,df2, how='outer',on='Date')
 
-# Ratio column added
-df["Ratio"]=df[symb1+'_VWAP']/df[symb2+'_VWAP']
+# fn for ratio column adder 
+def Ratio_column_adder(a,b):
+    df["x"]=df[a+'_VWAP']/df[b+'_VWAP']
+    return df["x"]
 
+df["Ratio"]=Ratio_column_adder(symb1,symb2)
+# Ratio column added
+#df["Ratio"]=df[symb1+'_VWAP']/df[symb2+'_VWAP']
+
+def Basket_creator(a,b):
+    
 # Basket column added
 df["Basket"]=df["Ratio"]
 for i in range(0,len(df["Basket"])-1):
@@ -62,15 +71,23 @@ for i in range(0,len(df["Basket"])-1):
 
 # MA5 column 
 df["MA5"]=""
-for i in range(4,len(df["MA5"])-1):
-    df["MA5"][i]=(df["Basket"][i-4]+df["Basket"][i-3]+df["Basket"][i-2]+df["Basket"][i-1]+df["Basket"][i])/5 
+for i in range(5,len(df["MA5"])-1):
+    df["MA5"][i-1]=sum(df["Basket"][i-5:i])/5 
 
-# MA5 column 
+# MA20 column 
 df["MA20"]=""
-for i in range(19,len(df["MA20"])-1):
-    rf=df.loc[i-19:i,30]
-    df["MA20"]=rf.sum(axis=0)
-   
+for j in range(20,len(df["MA20"])-1):
+    df["MA20"][j-1]=sum(df["Basket"][j-20:j])/20
+
+# STDEV of basket
+df["STDEV"]=""
+for k in range(20,len(df["STDEV"])-1):
+    df["STDEV"][k-1]=stdev(df["Basket"][k-20:k])
+
+# Z-Score of the pair
+df["Zscore"]=""
+for l in range(20,len(df["Zscore"])-1):
+    df["Zscore"][l-1]=(df["MA5"][l-1]-df["MA20"][l-1])/df["STDEV"][l-1]
 
 # print on screen to see output
 # print(df)  
@@ -83,6 +100,7 @@ writer.save()"""
 # To create a google sheet and write the content
 gc = gspread.service_account(filename='json file key.json') 
 # json file availabe in my branch
+
 gsheet = gc.open_by_key("1HsERTNlhYY48Ex5hIz8knyKUDQCVzdhc4DxrnxKhunI") 
 # Sheets key
 
