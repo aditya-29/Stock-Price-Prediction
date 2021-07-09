@@ -18,26 +18,25 @@ doc_ref = db.collection(u'JINDALPOLY')# Import data
 start_date = date(2019, 1, 1)
 end_date = date(2021,6, 10)
 symb = 'JINDALPOLY'
-#symb= input('Enter the company symbol code you want a history of')
-df= get_history (symbol=symb,start = start_date, end = end_date)
+Zdf= get_history (symbol=symb,start = start_date, end = end_date)
 print(len(df.columns))
-df.rename(columns = { 'Date': symb+'Date', 
-                      'Symbol':symb+'_Symbol',
-                      'Series':symb+'_Series',
-                      'Prev Close':symb+'_Prev Close',
-                      'Open':symb+'_Open',
-                      'High':symb+'_High',
-                      'Low':symb+'__Low',
-                      'Last':symb+'_Last',
-                      'Close':symb+'_Close',
-                      'VWAP':symb+'_VWAP',
-                      'Volume':symb+'_Vol',
-                      'Turnover':symb+'_TO',
-                      'Trades':symb+'_Trades',
-                      'Deliverable Volume':symb+'_DelVol',
-                      '%Deliverble':symb+'_%Del',                     
+df.rename(columns = { 'Date'                :'Date', 
+                      'Symbol'              :'Symbol',
+                      'Series'              :'Series',
+                      'Prev Close'          :'Prev Close',
+                      'Open'                :'Open',
+                      'High'                :'High',
+                      'Low'                 :'Low',
+                      'Last'                :'Last',
+                      'Close'               :'Close',
+                      'VWAP'                :'VWAP',
+                      'Volume'              :'Vol',
+                      'Turnover'            :'TO',
+                      'Trades'              :'Trades',
+                      'Deliverable Volume'  :'DelVol',
+                      '%Deliverble'         :'%Del',                     
                      },inplace = True)
-print(df)
+df = df.reset_index()
+df["Date"] = df.Date.apply(lambda x: x.strftime('%Y-%m-%d'))
 tmp = df.to_dict(orient='records')
-print(tmp)
 list(map(lambda x: doc_ref.add(x), tmp))
