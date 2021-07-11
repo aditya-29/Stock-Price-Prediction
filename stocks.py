@@ -139,3 +139,118 @@ wks = gsheet.get_worksheet(1)
 set_with_dataframe(wks, df,include_index=True)
 '''
 
+# To initiate buy for basket 
+def Basket_buy_initiate():
+    pos=0
+    for score in df["Basket_Zscore"].values:
+        if(score==''):
+            pos=pos+1
+            continue
+        if(float(score)<=-1):
+            if(float(df[symb1+"_Zscore"][pos])!=''):
+                if(float(df[symb1+"_Zscore"][pos])<=-1):
+                    if(float(df[symb2+"_Zscore"][pos+1])<=-1):
+                        if(float(df[symb1+"_Zscore"][pos+1])<=float(df[symb2+"_Zscore"][pos])):
+                            df["Buy_initiate"][pos+1]=-float(df[symb1+"_VWAP"][pos+1])
+                            pos=pos+1
+                            continue
+                        else:
+                            df["Buy_initiate"][pos+1]=-float(df[symb2+"_VWAP"][pos+1])
+                            pos=pos+1
+                            continue  
+                    else:
+                        pos=pos+1
+                        continue
+                else:
+                    pos=pos+1
+                    continue
+            else:
+                break
+        else:
+            pos=pos+1
+            continue
+    return None
+
+# To initiate buy for single stock
+def Single_buy_initiate(a):
+    pos=0
+    for score in df[a+"_Zscore"].values:
+        if(score==''):
+            pos=pos+1
+            continue
+        if(score<=-1):
+            if(df[a+"_Zscore"][pos+1]!=''):
+                if(float(df[a+"_Zscore"][pos+1])<=-1):
+                    df[a+"_Buy_initiate"][pos+1]=-float(df[a+"_VWAP"][pos+1])
+                    pos=pos+1
+                    continue
+                else:
+                    pos=pos+1
+                    continue
+            else:
+                break
+        else:
+            pos=pos+1
+            continue
+    return None
+"""
+# Sell value estimation
+def sell_absolute(a,b):
+    lis=[]
+
+    return lis
+
+# To initiate sell for basket
+def Sell_initiate(a):
+    pos1=0
+    pos2=0
+    sum=0
+    lis=[]
+    for score in df[a+"_Buy_initiate"].values:
+        if(score==''):
+            pos2=pos2+1
+            continue
+        if(score>=1):  
+            lis=sell_absolute(pos1,pos2)         
+
+    return None
+
+"""
+
+# Basket MA5 column 
+df["Basket_MA5"]=""
+for i in range(5,len(df["Basket_MA5"])-1):
+    df["Basket_MA5"][i-1]=sum(df["Basket"][i-5:i])/5
+
+# Basket MA20 column 
+df["Basket_MA20"]=""
+for j in range(20,len(df["Basket_MA20"])-1):
+    df["Basket_MA20"][j-1]=sum(df["Basket"][j-20:j])/20
+
+# STDEV of basket
+df["Basket_STDEV"]=""
+for k in range(20,len(df["Basket_STDEV"])-1):
+    df["Basket_STDEV"][k-1]=stdev(df["Basket"][k-20:k])
+
+# Z_Score of the basket
+Z_Score(symb3)
+df["Buy_initiate"]=""
+
+# Parameters of Symb1
+Moving_Average(symb1,5)
+Moving_Average(symb1,20)
+Std_Dev(symb1)
+Z_Score(symb1)
+df[symb1+"_Buy_initiate"]=""
+
+# Parameters of Symb2
+Moving_Average(symb2,5)
+Moving_Average(symb2,20)
+Std_Dev(symb2)
+Z_Score(symb2)
+df[symb2+"_Buy_initiate"]=""
+
+Basket_buy_initiate()
+Single_buy_initiate(symb1)
+Single_buy_initiate(symb2)
+
