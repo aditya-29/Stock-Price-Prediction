@@ -67,6 +67,84 @@ def Z_Score(a):
         df[a+"_Zscore"][l-1]=(df[a+"_MA5"][l-1]-df[a+"_MA20"][l-1])/df[a+"_STDEV"][l-1]
     return None
 
+# To initiate buy for basket 
+def Basket_buy_initiate():
+    pos=0
+    for score in df["Basket_Zscore"].values:
+        if(score==''):
+            pos=pos+1
+            continue
+        if(float(score)<=-1):
+            if(float(df[symb1+"_Zscore"][pos])!=''):
+                if(float(df[symb1+"_Zscore"][pos])<=-1):
+                    if(float(df[symb2+"_Zscore"][pos+1])<=-1):
+                        if(float(df[symb1+"_Zscore"][pos+1])<=float(df[symb2+"_Zscore"][pos])):
+                            df["Buy_initiate"][pos+1]=-float(df[symb1+"_VWAP"][pos+1])
+                            pos=pos+1
+                            continue
+                        else:
+                            df["Buy_initiate"][pos+1]=-float(df[symb2+"_VWAP"][pos+1])
+                            pos=pos+1
+                            continue  
+                    else:
+                        pos=pos+1
+                        continue
+                else:
+                    pos=pos+1
+                    continue
+            else:
+                break
+        else:
+            pos=pos+1
+            continue
+    return None
+
+# To initiate buy for single stock
+def Single_buy_initiate(a):
+    pos=0
+    for score in df[a+"_Zscore"].values:
+        if(score==''):
+            pos=pos+1
+            continue
+        if(score<=-1):
+            if(df[a+"_Zscore"][pos+1]!=''):
+                if(float(df[a+"_Zscore"][pos+1])<=-1):
+                    df[a+"_Buy_initiate"][pos+1]=-float(df[a+"_VWAP"][pos+1])
+                    pos=pos+1
+                    continue
+                else:
+                    pos=pos+1
+                    continue
+            else:
+                break
+        else:
+            pos=pos+1
+            continue
+    return None
+"""
+# Sell value estimation
+def sell_absolute(a,b):
+    lis=[]
+
+    return lis
+
+# To initiate sell for basket
+def Sell_initiate(a):
+    pos1=0
+    pos2=0
+    sum=0
+    lis=[]
+    for score in df[a+"_Buy_initiate"].values:
+        if(score==''):
+            pos2=pos2+1
+            continue
+        if(score>=1):  
+            lis=sell_absolute(pos1,pos2)         
+
+    return None
+
+"""
+
 # Basket MA5 column 
 df["Basket_MA5"]=""
 for i in range(5,len(df["Basket_MA5"])-1):
@@ -100,6 +178,9 @@ Std_Dev(symb2)
 Z_Score(symb2)
 df[symb2+"_Buy_initiate"]=""
 
+Basket_buy_initiate()
+Single_buy_initiate(symb1)
+Single_buy_initiate(symb2)
 # To create a google sheet and write the content
 gc = gspread.service_account(filename='json file key.json') 
 # json file availabe in my branch
@@ -114,7 +195,6 @@ gsheet.add_worksheet(rows=617,cols=31,title=NwWkSht)
 #df=pd.DataFrame()
 wks = gsheet.get_worksheet(1)
 set_with_dataframe(wks, df,include_index=True)
-
 
 
 
