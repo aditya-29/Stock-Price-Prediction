@@ -80,10 +80,12 @@ def Basket_buy_initiate():
                     if(float(df[symb2+"_Zscore"][pos+1])<=-1):
                         if(float(df[symb1+"_Zscore"][pos+1])<=float(df[symb2+"_Zscore"][pos])):
                             df["Buy_initiate"][pos+1]=-float(df[symb1+"_VWAP"][pos+1])
+                            df["S_company"][pos+1]=str(symb1)
                             pos=pos+1
                             continue
                         else:
                             df["Buy_initiate"][pos+1]=-float(df[symb2+"_VWAP"][pos+1])
+                            df["S_company"][pos+1]=str(symb2)
                             pos=pos+1
                             continue  
                     else:
@@ -110,6 +112,7 @@ def Single_buy_initiate(a):
             if(df[a+"_Zscore"][pos+1]!=''):
                 if(float(df[a+"_Zscore"][pos+1])<=-1):
                     df[a+"_Buy_initiate"][pos+1]=-float(df[a+"_VWAP"][pos+1])
+                    df[a+"_Qty"][pos+1]=1
                     pos=pos+1
                     continue
                 else:
@@ -121,29 +124,80 @@ def Single_buy_initiate(a):
             pos=pos+1
             continue
     return None
-"""
-# Sell value estimation
-def sell_absolute(a,b):
-    lis=[]
 
-    return lis
-
-# To initiate sell for basket
-def Sell_initiate(a):
+# Basket Sell value estimation
+def sell_absolute():
     pos1=0
     pos2=0
-    sum=0
-    lis=[]
-    for score in df[a+"_Buy_initiate"].values:
+    s1=0
+    s2=0
+    for score in df["Basket_Zscore"].values:    
+        if(score==''):
+            pos2=pos2+1
+        elif(float(score)>=1):
+            for comp in df["S_company"][pos1:pos2]:
+                if(comp==symb1):
+                    s1=s1+1
+                    continue
+                elif(comp==symb2):
+                    s2=s2+1
+                    continue
+                else:
+                    continue
+            df["Buy_initiate"][pos2]=(s1*float(df[symb1+"_VWAP"][pos2]))+(s2*float(df[symb2+"_VWAP"][pos2]))
+            s1=0
+            s2=0
+            pos1=pos2
+            pos2=pos2+1
+        else:
+            pos2=pos2+1
+    return None
+
+
+# individual sell initiate
+def ind_sell(a):
+    pos1=0
+    pos2=0
+    s=0
+    for score in df[a+"_Zscore"]:
         if(score==''):
             pos2=pos2+1
             continue
-        if(score>=1):  
-            lis=sell_absolute(pos1,pos2)         
-
+        elif(float(score)>=1):
+            for cel in df[a+"_Qty"][pos1:pos2]:
+                if(cel!=''):
+                    s=s+1
+                    continue
+                else:
+                    continue
+            df[a+"_Buy_initiate"][pos2]=s*df[a+"_VWAP"][pos2]
+            s=0
+            pos1=pos2
+            pos2=pos2+1
+        else:
+            pos2=pos2+1
     return None
 
-"""
+
+def column_cleanser(a):
+    for i in range(len(df[a+"_Buy_initiate"]),0,-1):
+        if(df[a+"_Buy_initiate"][i-1]==''):
+            df[a+"_Buy_initiate"][i-1]=0
+        elif(float(df[a+"_Buy_initiate"][i-1])>=0):
+            break
+        else:
+            df[a+"_Buy_initiate"][i-1]=0            
+    return None
+
+def basket_cleanser():
+    for i in range(len(df["Buy_initiate"]),0,-1):
+        if(df["Buy_initiate"][i-1]==''):
+            df["Buy_initiate"][i-1]=0
+        elif(float(df["Buy_initiate"][i-1])>=0):
+            break
+        else:
+            df["Buy_initiate"][i-1]=0            
+    return None
 
 # Basket MA5 column 
 df["Basket_MA5"]=""
@@ -163,6 +217,7 @@ for k in range(20,len(df["Basket_STDEV"])-1):
 # Z_Score of the basket
 Z_Score(symb3)
 df["Buy_initiate"]=""
+df["S_company"]=""
 
 # Parameters of Symb1
 Moving_Average(symb1,5)
@@ -170,6 +225,7 @@ Moving_Average(symb1,20)
 Std_Dev(symb1)
 Z_Score(symb1)
 df[symb1+"_Buy_initiate"]=""
+df[symb1+"_Qty"]=""
 
 # Parameters of Symb2
 Moving_Average(symb2,5)
@@ -177,10 +233,67 @@ Moving_Average(symb2,20)
 Std_Dev(symb2)
 Z_Score(symb2)
 df[symb2+"_Buy_initiate"]=""
+df[symb2+"_Qty"]=""
 
 Basket_buy_initiate()
 Single_buy_initiate(symb1)
 Single_buy_initiate(symb2)
+sell_absolute()
+ind_sell(symb1)
+ind_sell(symb2)
+
+df[symb3+"_Profit"]=''
+df[symb1+"_Profit"]=''
+df[symb2+"_Profit"]=''
+
+def Basket_profit_calc():
+    sell=0
+    buy=0
+    for val in df["Buy_initiate"].values:
+        if(val!=''):
+            if(float(val)>=0):
+                sell=sell+val
+            elif(float(val)<0):
+                buy=buy+val
+            else:
+                continue
+        else:
+            continue
+    profit=buy+sell
+    df[symb3+"_Profit"][1]=buy
+    df[symb3+"_Profit"][2]=sell
+    df[symb3+"_Profit"][3]=profit
+    df[symb3+"_Profit"][4]=(profit/-buy)*100
+    return None
+
+def Profit_calc(a):
+    sell=0
+    buy=0
+    for val in df[a+"_Buy_initiate"].values:
+        if(val!=''):
+            if(float(val)>=0):
+                sell=sell+val
+            elif(float(val)<0):
+                buy=buy+val
+            else:
+                continue
+        else:
+            continue
+    profit=buy+sell
+    df[a+"_Profit"][1]=buy
+    df[a+"_Profit"][2]=sell
+    df[a+"_Profit"][3]=profit
+    df[a+"_Profit"][4]=(profit/-buy)*100
+    return None
+
+Basket_profit_calc()
+Profit_calc(symb1)
+Profit_calc(symb2)
+
+column_cleanser(symb1)
+column_cleanser(symb2)
+basket_cleanser()
+
 # To create a google sheet and write the content
 gc = gspread.service_account(filename='json file key.json') 
 # json file availabe in my branch
